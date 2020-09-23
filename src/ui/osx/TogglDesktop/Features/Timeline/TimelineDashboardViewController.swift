@@ -589,7 +589,7 @@ extension TimelineDashboardViewController: TimelineCollectionViewDelegate {
         }
 
         // Create
-        let defaultDuration: TimeInterval = 1
+        let defaultDuration: TimeInterval = 60 * 60 // 1 hour
         startNewTimeEntry(at: startTime, ended: startTime + defaultDuration)
 
         // Onboarding
@@ -608,7 +608,12 @@ extension TimelineDashboardViewController: TimelineCollectionViewDelegate {
     func timelineDidEndDragging(withStartTime startTime: TimeInterval, endTime: TimeInterval) {
         closeAllPopovers()
         datasource.createdDraggingTimeEntry(withStartTime: startTime, endTime: endTime)
-        startNewTimeEntry(at: startTime, ended: endTime)
+        let maxDurationWhichDetectsAsClick: TimeInterval = 30 // 30 seconds
+        if endTime - startTime < maxDurationWhichDetectsAsClick {
+            timelineShouldCreateEmptyEntry(with: startTime)
+        } else {
+            startNewTimeEntry(at: startTime, ended: endTime)
+        }
     }
 }
 
