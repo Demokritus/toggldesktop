@@ -22,7 +22,11 @@ namespace TogglDesktop.ViewModels
             SelectPreviousDay = ReactiveCommand.Create(Toggl.ViewTimelinePreviousDay);
             SelectNextDay = ReactiveCommand.Create(Toggl.ViewTimelineNextDay);
             Toggl.OnTimeline += HandleDisplayTimeline;
-            Toggl.OnTimeEntryList += HandleTimeEntryListChanged; 
+            Toggl.OnTimeEntryList += HandleTimeEntryListChanged;
+            Toggl.OnTimeEntryEditor += (open, te, field) =>
+                SelectedTEId = open ? te.GUID : SelectedTEId;
+            this.WhenAnyValue(x => x.SelectedTEId, x => x.TimeEntryBlocks).Subscribe(_ =>
+                TimeEntryBlocks?.ForEach(te => te.IsEditViewOpened = SelectedTEId == te.TimeEntryId));
 
             HourViews = new List<DateTime>();
             for (int i = 0; i < 24; i++)
@@ -38,6 +42,8 @@ namespace TogglDesktop.ViewModels
                 Toggl.LoadMore();
             }
             Toggl.SetViewTimelineDay(Toggl.UnixFromDateTime(SelectedDate));
+            if (SelectedTEId != null)
+                Toggl.Edit(SelectedTEId, false, "");
         }
 
         private void HandleDisplayTimeline(bool open, string date, List<Toggl.TimelineChunkView> first, List<Toggl.TogglTimeEntryView> firstTimeEntry, ulong startDay, ulong endDay)
@@ -176,6 +182,7 @@ namespace TogglDesktop.ViewModels
                     usedNumOfOffsets--;
                 }
             }
+
             TimeEntryBlocks = null;
             TimeEntryBlocks = blocks;
 
@@ -198,14 +205,15 @@ namespace TogglDesktop.ViewModels
                 if (prevEnd != null && entry.Started > prevEnd.Value + 5 *60)
                 {
                     var start = Toggl.DateTimeFromUnix(prevEnd.Value+1);
-                    gaps.Add(new TimeEntryBlock()
+                    var block = new TimeEntryBlock()
                     {
                         Height = ConvertTimeIntervalToHeight(start, Toggl.DateTimeFromUnix(entry.Started-1)),
                         VerticalOffset = ConvertTimeIntervalToHeight(new DateTime(start.Year, start.Month, start.Day), start),
                         HorizontalOffset = 0,
                         Started = prevEnd.Value+1,
                         Ended = entry.Started-1
-                    });
+                    };
+                    gaps.Add(block);
                 }
                 prevEnd = !prevEnd.HasValue || entry.Ended > prevEnd ? entry.Ended : prevEnd;
             }
@@ -242,6 +250,9 @@ namespace TogglDesktop.ViewModels
         [Reactive]
         public List<TimeEntryBlock> GapTimeEntryBlocks { get; private set; }
 
+        [Reactive]
+        public string SelectedTEId { get; set; }
+
         public class ActivityBlock
         {
             public double Offset { get; set; }
@@ -258,7 +269,7 @@ namespace TogglDesktop.ViewModels
         }
     }
 
-    public class TimeEntryBlock
+    public class TimeEntryBlock : ReactiveObject
     {
         public double VerticalOffset { get; set; }
         public double HorizontalOffset { get; set; }
@@ -272,21 +283,27 @@ namespace TogglDesktop.ViewModels
         public ulong Ended { get; set; }
         public ReactiveCommand<Unit, Unit> CreateTimeEntryFromBlock { get; }
         public ReactiveCommand<Unit,Unit> OpenEditView { get; }
-        private string _timeEntryId;
+        public string TimeEntryId { get; private set; }
+
+        [Reactive]
+        public bool IsEditViewOpened { get; set; }
 
         public TimeEntryBlock(string timeEntryId)
         {
-            _timeEntryId = timeEntryId;
+            TimeEntryId = timeEntryId;
             CreateTimeEntryFromBlock = ReactiveCommand.Create(() => AddNewTimeEntry());
-            OpenEditView = ReactiveCommand.Create(() => Toggl.Edit(_timeEntryId, false, Toggl.Description));
+            OpenEditView = ReactiveCommand.Create(() =>
+            {
+                Toggl.Edit(TimeEntryId, false, Toggl.Description);
+            });
         }
 
         public TimeEntryBlock() : this(null) { }
 
         private void AddNewTimeEntry()
         {
-            _timeEntryId = Toggl.CreateEmptyTimeEntry(Started, Ended);
-            Toggl.Edit(_timeEntryId, false, Toggl.Description);
+            TimeEntryId = Toggl.CreateEmptyTimeEntry(Started, Ended);
+            Toggl.Edit(TimeEntryId, false, Toggl.Description);
         }
     }
 }
