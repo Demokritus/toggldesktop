@@ -144,8 +144,17 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <togglDesktop:TimelineTimeEntryBlock Panel.ZIndex="1" DataContext="{Binding Path=.}"
-                                                                     Width="{Binding ElementName=TimeEntryCanvas, Path=ActualWidth}"/>
+                                <togglDesktop:TimelineTimeEntryBlock Panel.ZIndex="1" DataContext="{Binding Path=.}">
+                                    <togglDesktop:TimelineTimeEntryBlock.Style>
+                                        <Style TargetType="FrameworkElement">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowDescription}" Value="True">
+                                                    <Setter Property="Width" Value="{Binding ElementName=TimeEntryCanvas, Path=ActualWidth}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </togglDesktop:TimelineTimeEntryBlock.Style>
+                                </togglDesktop:TimelineTimeEntryBlock>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                         <ItemsControl.ItemContainerStyle>

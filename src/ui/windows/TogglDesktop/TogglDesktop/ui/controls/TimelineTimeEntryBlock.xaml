@@ -16,40 +16,92 @@
             <sys:Double x:Key="PointOneDouble">0.1</sys:Double>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Margin="0 0 4 0">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Rectangle Grid.Column="0" Name ="TimeEntrySpan"
-                   Width="20" Height="{Binding Height}"
-                   Fill="{Binding Color, Converter={StaticResource AdaptProjectColorConverter}}"
-                   RadiusX="{Binding Height, Converter={StaticResource HeightToRadiusConverter}, ConverterParameter='RadiusX'}"
-                   RadiusY="{Binding Height, Converter={StaticResource HeightToRadiusConverter}, ConverterParameter='RadiusY'}">
-        </Rectangle>
-        <Border CornerRadius="8,8,8,8" BorderThickness="0" Grid.Column="1" Margin="-10 0 0 0"
-                Visibility="{Binding ShowDescription, Converter={StaticResource BooleanToVisibilityConverter}}"
+    <Grid>
+        <Border CornerRadius="8,8,8,8" BorderThickness="0" Margin="0 0 4 0"
                 Background="{Binding ElementName=TimeEntrySpan, Path=Fill, Converter={StaticResource BrushOpacityConverter},ConverterParameter={StaticResource PointOneDouble}}">
-            <StackPanel Height="{Binding Height}" Margin="20,0,0,0">
-                <TextBlock Text="{Binding Description}" Style="{StaticResource Toggl.CaptionBlackText}"/>
-                <DockPanel>
-                    <Ellipse Width="8" Height="8"
-                             DockPanel.Dock="Left"
-                             Margin="0 0 5 0"
-                             VerticalAlignment="Center"
-                             Fill="{Binding ElementName=TimeEntrySpan, Path=Fill}"
-                             Visibility="{Binding ProjectName, Converter={StaticResource EmptyStringToCollapsedConverter}}"/>
-                    <TextBlock Foreground="{Binding Color, Converter={StaticResource AdaptProjectTextColorConverter}}"
-                               Text="{Binding ProjectName}" FontSize="12"
-                               VerticalAlignment="Center"/>
-                </DockPanel>
-                <TextBlock Text="{Binding ClientName}" Style="{StaticResource Toggl.CaptionText}"/>
-                <Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Rectangle Name ="TimeEntrySpan"
+                               Grid.Column="0" MouseEnter="OnTimeEntryBlockMouseEnter"
+                               Width="20" Height="{Binding Height}"
+                               Fill="{Binding Color, Converter={StaticResource AdaptProjectColorConverter}}"
+                               RadiusX="{Binding Height, Converter={StaticResource HeightToRadiusConverter}, ConverterParameter='RadiusX'}"
+                               RadiusY="{Binding Height, Converter={StaticResource HeightToRadiusConverter}, ConverterParameter='RadiusY'}">
+                </Rectangle>
+                <StackPanel Height="{Binding Height}" Margin="10,0,0,0" Grid.Column="1"
+                            Visibility="{Binding ShowDescription, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding Description}" Style="{StaticResource Toggl.CaptionBlackText}"/>
+                    <DockPanel>
+                        <Ellipse Width="8" Height="8"
+                                 DockPanel.Dock="Left"
+                                 Margin="0 0 5 0"
+                                 VerticalAlignment="Center"
+                                 Fill="{Binding ElementName=TimeEntrySpan, Path=Fill}"
+                                 Visibility="{Binding ProjectName, Converter={StaticResource EmptyStringToCollapsedConverter}}"/>
+                        <TextBlock Foreground="{Binding Color, Converter={StaticResource AdaptProjectTextColorConverter}}"
+                                   Text="{Binding ProjectName}" FontSize="12"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Text="{Binding ClientName}" Style="{StaticResource Toggl.CaptionText}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" Grid.Column="0">
+                            <Viewbox Visibility="{Binding HasTag, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Path Style="{StaticResource Toggl.TagIcon}"/>
+                            </Viewbox>
+                            <Viewbox DockPanel.Dock="Left" Visibility="{Binding IsBillable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Path Style="{StaticResource Toggl.DollarIcon}"/>
+                            </Viewbox>
+                        </StackPanel>
+                        <TextBlock Margin="0 0 5 0" Grid.Column="1" Text="{Binding Duration}" Style="{StaticResource Toggl.CaptionBlackText}"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Popup PlacementTarget="{Binding ElementName=TimeEntrySpan}" Placement="Right"
+               Name="TimeEntryPopup"
+               HorizontalOffset="5"
+               StaysOpen="True"
+               IsOpen="{Binding ElementName=TimeEntrySpan, Path=IsMouseOver, Mode=OneWay}">
+            <Border BorderBrush="{DynamicResource Toggl.PopupBorderBrush}" BorderThickness="1" Focusable="False"
+                    Background="{DynamicResource Toggl.CardBackground}">
+                <Border.Effect>
+                    <DropShadowEffect ShadowDepth="1" BlurRadius="4" Direction="270" Opacity="0.2" Color="Black" />
+                </Border.Effect>
+                <Grid Margin="8 8 8 8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0 0 5 0" Grid.Row="0" Grid.Column="0" Text="{Binding StartEndCaption}" Style="{StaticResource Toggl.CaptionBlackText}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Duration}" Style="{StaticResource Toggl.CaptionBlackText}"/>
+                    <TextBlock Margin="0 10 0 0" Grid.Row="1" Grid.Column="0" Text="{Binding Description}" Style="{StaticResource Toggl.CaptionBlackText}"/>
+                    <DockPanel Grid.Row="2" Grid.Column="0" Margin="0 4 0 0">
+                        <Ellipse Width="8" Height="8"
+                                 DockPanel.Dock="Left"
+                                 Margin="0 0 5 0"
+                                 VerticalAlignment="Center"
+                                 Fill="{Binding ElementName=TimeEntrySpan, Path=Fill}"
+                                 Visibility="{Binding ProjectName, Converter={StaticResource EmptyStringToCollapsedConverter}}"/>
+                        <TextBlock Foreground="{Binding Color, Converter={StaticResource AdaptProjectTextColorConverter}}"
+                                   Text="{Binding ProjectName}" FontSize="12"
+                                   VerticalAlignment="Center"/>
+                    </DockPanel>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding ClientName}" Style="{StaticResource Toggl.CaptionText}"/>
+                    <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.Column="0">
                         <Viewbox Visibility="{Binding HasTag, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Path Style="{StaticResource Toggl.TagIcon}"/>
                         </Viewbox>
@@ -57,9 +109,8 @@
                             <Path Style="{StaticResource Toggl.DollarIcon}"/>
                         </Viewbox>
                     </StackPanel>
-                    <TextBlock Margin="0 0 5 0" Grid.Column="1" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="{Binding Duration}" Style="{StaticResource Toggl.CaptionBlackText}"/>
                 </Grid>
-            </StackPanel>
-        </Border>
+            </Border>
+        </Popup>
     </Grid>
 </UserControl>
