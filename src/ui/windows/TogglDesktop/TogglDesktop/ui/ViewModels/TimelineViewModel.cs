@@ -120,7 +120,10 @@ namespace TogglDesktop.ViewModels
                     ClientName = entry.ClientLabel,
                     ShowDescription = true,
                     Started = entry.Started,
-                    Ended = entry.Ended
+                    Ended = entry.Ended,
+                    HasTag = !entry.Tags.IsNullOrEmpty(),
+                    IsBillable = entry.Billable,
+                    Duration = entry.DateDuration
                 };
                 if (entry.Started != entry.Ended)
                 {
@@ -271,6 +274,9 @@ namespace TogglDesktop.ViewModels
         public string ClientName { get; set; }
         public ulong Started { get; set; }
         public ulong Ended { get; set; }
+        public bool HasTag { get; set; }
+        public bool IsBillable { get; set; }
+        public string Duration { get; set; }
         public ReactiveCommand<Unit, Unit> CreateTimeEntryFromBlock { get; }
 
         public TimeEntryBlock()
